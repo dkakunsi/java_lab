@@ -22,7 +22,9 @@ import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 
 /**
- * StandardizedLayout
+ * StandardizedLayout with custom data format.
+ * 
+ * @author dkakunsi
  */
 @Plugin(name = "StandardizedLayout", category = "Core", elementType = "layout", printObject = true)
 public class StandardizedLayout extends AbstractStringLayout {
@@ -90,6 +92,13 @@ public class StandardizedLayout extends AbstractStringLayout {
         }
     }
 
+    /**
+     * Generate exception stack trace.
+     * 
+     * @param thrown the exception
+     * @param recursive whether to print the exception recursively. {@code false} will just print the most inner exception.
+     * @return list of custom-formatted exception data.
+     */
     private List<Object> generateStackTrace(Throwable thrown, boolean recursive) {
         List<Object> stack = new ArrayList<>();
 
@@ -111,6 +120,12 @@ public class StandardizedLayout extends AbstractStringLayout {
         return stack;
     }
 
+    /**
+     * Get the most inner exception.
+     * 
+     * @param thrown exception
+     * @return the most inner exception
+     */
     private Throwable getInnerException(Throwable thrown) {
         while (thrown.getCause() != null) {
             thrown = thrown.getCause();
@@ -118,6 +133,12 @@ public class StandardizedLayout extends AbstractStringLayout {
         return thrown;
     }
 
+    /**
+     * Generate calling stacktrace of an exception.
+     * 
+     * @param stacktraces stacktrace element
+     * @return list of custom-formatted stacktrace
+     */
     private List<Object> generateStackTrace(StackTraceElement[] stacktraces) {
         List<Object> stack = new ArrayList<>();
 
