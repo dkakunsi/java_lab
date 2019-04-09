@@ -2,7 +2,9 @@
 <Configuration packages="id.dkakunsi.lab.jlogging" name="jlogging">
     <Appenders>
         <Console name="CONSOLE" target="SYSTEM_OUT">
-            <StandardizedLayout recursiveStackTrace="false" />
+            <CustomJsonLayout
+                isRecursiveStackTrace="false"
+                attributes="timestamp,correlationId,tid,principal,host,service,instance,version,thread,category,level,message,fault,stacktrace,payload" />
         </Console>
     </Appenders>
     <Loggers>
