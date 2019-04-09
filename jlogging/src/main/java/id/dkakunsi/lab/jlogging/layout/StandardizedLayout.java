@@ -15,6 +15,7 @@ import java.util.TimeZone;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
@@ -46,21 +47,21 @@ public class StandardizedLayout extends AbstractStringLayout {
     public String toSerializable(LogEvent event) {
         Map<String, Object> format = new HashMap<>();
         format.put("timestamp", getIsoDate(new Date()));
-        format.put("correlationId", getProperty("correlationId"));
-        format.put("tid", getProperty("tid"));
-        format.put("principal", getProperty("principal"));
+        format.put("correlationId", event.getContextData().getValue("correlationId"));
+        format.put("tid", event.getContextData().getValue("tid"));
+        format.put("principal", event.getContextData().getValue("principal"));
         format.put("host", getHostname());
-        format.put("service", getProperty("service"));
-        format.put("instance", getProperty("instance"));
-        format.put("version", getProperty("version"));
+        format.put("service", event.getContextData().getValue("service"));
+        format.put("instance", event.getContextData().getValue("instance"));
+        format.put("version", event.getContextData().getValue("version"));
         format.put("thread", event.getThreadName());
         format.put("category", event.getLoggerName());
         format.put("level", event.getLevel().getStandardLevel());
         format.put("message", event.getMessage().getFormattedMessage());
-        format.put("fault", getProperty("fault"));
+        format.put("fault", event.getContextData().getValue("fault"));
         format.put("stacktrace",
                 event.getThrown() != null ? generateStackTrace(event.getThrown(), recursiveStacktrace) : null);
-        format.put("payload", getProperty("payload"));
+        format.put("payload", event.getContextData().getValue("payload"));
 
         try {
             return mapper.writeValueAsString(format);
@@ -88,10 +89,6 @@ public class StandardizedLayout extends AbstractStringLayout {
         } catch (UnknownHostException e) {
             return e.getMessage();
         }
-    }
-
-    private Object getProperty(String key) {
-        return "";
     }
 
     private List<Object> generateStackTrace(Throwable thrown, boolean recursive) {
