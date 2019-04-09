@@ -15,6 +15,7 @@ import java.util.TimeZone;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
@@ -22,30 +23,71 @@ import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 
 /**
- * StandardizedLayout with custom data format.
+ * <p>
+ * Serialize {@link LogEvent} into a custom-formatted log entry, with each entry
+ * is a valid JSON. But, the full log file is not guaranteed to be a valid JSON
+ * file.
+ * </p>
+ * <p>
+ * There are 2 types of attributes, which are common attributes from
+ * {@link LogEvent} and custom attributes from {@link ThreadContext}.
+ * </p>
+ * The format is:
+ * 
+ * <pre>
+ * {
+ *      "timestamp": "When the event created",
+ *      "correlationId": "Custom field loaded from {@code ThreadContext}",
+ *      "tid": "Custom field loaded from {@code ThreadContext}",
+ *      "principal": "Custom field loaded from {@code ThreadContext}",
+ *      "host": "Host from {@link InetAddress}",
+ *      "service": "Custom field loaded from {@code ThreadContext}",
+ *      "instance": "Custom field loaded from {@code ThreadContext}",
+ *      "version": "Custom field loaded from {@code ThreadContext}",
+ *      "thread": "Thread that generate the event",
+ *      "category": "Logger name",
+ *      "level": "Log level",
+ *      "message": "Log message",
+ *      "fault": "Custom field loaded from {@code ThreadContext}",
+ *      "stacktrace": "Stacktrace of an exception. Only exist when there is an exception",
+ *      "payload": "Custom field loaded from {@code ThreadContext}"
+ * }
+ * </pre>
+ * <p>
+ * The {@code stacktrace} can be either printed recursively or just the most
+ * inner exception. This behaviour controlled by {@link #RECURSIVE_STACKTRACE}
+ * value.
+ * </p>
  * 
  * @author dkakunsi
  */
 @Plugin(name = "StandardizedLayout", category = "Core", elementType = "layout", printObject = true)
 public class StandardizedLayout extends AbstractStringLayout {
 
-    private static final boolean RECURSICE_STACKTRACE = true;
+    private String dateFormat;
 
-    private static final String TIME_ZONE = "UTC";
+    private boolean recursiveStackTrace;
 
-    private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm'Z'";
+    private String timezone;
 
     private ObjectMapper mapper;
 
-    protected StandardizedLayout(Charset charset) {
+    protected StandardizedLayout(Charset charset, boolean recursiveStackTrace, String timezone, String dateFormat) {
         super(charset);
-        mapper = new ObjectMapper();
+        this.recursiveStackTrace = recursiveStackTrace;
+        this.timezone = timezone;
+        this.dateFormat = dateFormat;
+
+        this.mapper = new ObjectMapper();
     }
 
     @PluginFactory
     public static StandardizedLayout createLayout(
-            @PluginAttribute(value = "charset", defaultString = "UTF-8") Charset charset) {
-        return new StandardizedLayout(charset);
+            @PluginAttribute(value = "charset", defaultString = "UTF-8") Charset charset,
+            @PluginAttribute(value = "recursiveStackTrace", defaultBoolean = true) boolean recursiveStacktrace,
+            @PluginAttribute(value = "timeZone", defaultString = "UTC") String timezone,
+            @PluginAttribute(value = "dateFormat", defaultString = "yyyy-MM-dd'T'HH:mm'Z'") String dateFormat) {
+        return new StandardizedLayout(charset, recursiveStacktrace, timezone, dateFormat);
     }
 
     @Override
@@ -65,7 +107,7 @@ public class StandardizedLayout extends AbstractStringLayout {
         format.put("message", event.getMessage().getFormattedMessage());
         format.put("fault", event.getContextData().getValue("fault"));
         format.put("stacktrace",
-                event.getThrown() != null ? generateStackTrace(event.getThrown(), RECURSICE_STACKTRACE) : null);
+                event.getThrown() != null ? generateStackTrace(event.getThrown(), recursiveStackTrace) : null);
         format.put("payload", event.getContextData().getValue("payload"));
 
         try {
@@ -75,13 +117,13 @@ public class StandardizedLayout extends AbstractStringLayout {
         }
     }
 
-    private static String getIsoDate(long millis) {
+    private String getIsoDate(long millis) {
         if (millis == 0) {
             millis = new Date().getTime();
         }
 
-        TimeZone tz = TimeZone.getTimeZone(TIME_ZONE);
-        DateFormat df = new SimpleDateFormat(DATE_FORMAT);
+        TimeZone tz = TimeZone.getTimeZone(this.timezone);
+        DateFormat df = new SimpleDateFormat(this.dateFormat);
         df.setTimeZone(tz);
 
         return df.format(new Date());
@@ -97,10 +139,26 @@ public class StandardizedLayout extends AbstractStringLayout {
     }
 
     /**
-     * Generate exception stack trace.
+     * <p>
+     * Generate exception stack trace. The result is list of exception in custom
+     * format.
+     * </p>
+     * The example is:
      * 
-     * @param thrown the exception
-     * @param recursive whether to print the exception recursively. {@code false} will just print the most inner exception.
+     * <pre>
+     * {
+     *      "exception": "java.lang.Exception",
+     *      "message": "Exception message",
+     *      "stack": "[LIST OF CALLING STACKTRACE]"
+     * }
+     * </pre>
+     * 
+     * To generate the stack element, please see
+     * {@link #generateStackTrace(StackTraceElement[])}.
+     * 
+     * @param thrown    the exception
+     * @param recursive whether to print the exception recursively. {@code false}
+     *                  will just print the most inner exception.
      * @return list of custom-formatted exception data.
      */
     private List<Object> generateStackTrace(Throwable thrown, boolean recursive) {
@@ -138,7 +196,19 @@ public class StandardizedLayout extends AbstractStringLayout {
     }
 
     /**
-     * Generate calling stacktrace of an exception.
+     * <p>
+     * Generate calling stacktrace of an exception. The result of list of calling
+     * stacktrace in custom format.
+     * </p>
+     * The format is:
+     * 
+     * <pre>
+     * {
+     *      "file": "App.java",
+     *      "method": "main",
+     *      "line": 20
+     * }
+     * </pre>
      * 
      * @param stacktraces stacktrace element
      * @return list of custom-formatted stacktrace
@@ -149,7 +219,7 @@ public class StandardizedLayout extends AbstractStringLayout {
         Map<String, Object> map;
         for (StackTraceElement stacktrace : stacktraces) {
             map = new LinkedHashMap<>();
-            map.put("class", stacktrace.getFileName());
+            map.put("file", stacktrace.getFileName());
             map.put("method", stacktrace.getMethodName());
             map.put("line", stacktrace.getLineNumber());
 

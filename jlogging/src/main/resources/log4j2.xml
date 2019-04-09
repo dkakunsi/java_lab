@@ -2,7 +2,7 @@
 <Configuration packages="id.dkakunsi.lab.jlogging" name="jlogging">
     <Appenders>
         <Console name="CONSOLE" target="SYSTEM_OUT">
-            <StandardizedLayout />
+            <StandardizedLayout recursiveStackTrace="false" />
         </Console>
     </Appenders>
     <Loggers>
