@@ -7,7 +7,7 @@ import java.net.UnknownHostException;
  * <p>
  * Load attribute from application or system environment.
  * 
- * The supported attribut are:
+ * The supported attributes are:
  * <ul>
  * <li>hostname, which will produce {@link InetAddress} hostname</li>
  * <li>host, which will produce {@link InetAddress} hostname</li>

@@ -7,7 +7,7 @@ import org.apache.logging.log4j.core.LogEvent;
  * <p>
  * Load attributes from {@link ThreadContext} inside {@link LogEvent}. Each key
  * will be supported as long as it exists in the context. {@code null} will be
- * return if it is not exists.
+ * returned if it is not exists.
  * </p>
  * 
  * @author dkakunsi

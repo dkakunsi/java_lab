@@ -16,7 +16,7 @@ import id.dkakunsi.lab.jlogging.layout.CustomJsonLayout;
 
 /**
  * <p>
- * Load attribute from the {@link LogEvent}. Current supported attribute are:
+ * Load attribute from the {@link LogEvent}. Current supported attributes are:
  * </p>
  * <ul>
  * <li>timestamp, which will return ISO-8601 date</li>

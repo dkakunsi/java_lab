@@ -38,10 +38,10 @@ import id.dkakunsi.lab.jlogging.attributeloader.EventAttributeLoader;
  * </ol>
  * </p>
  * <p>
- * The log entry is in JSON format which can be specified as {@code attribute}
+ * The log entry is in JSON format which can be specified as {@code attributes}
  * in log4j configuration under {@code <CustomJsonLayout>} element. If not
  * specified, the layout will use the {@link #DEFAULT_ATTRIBUTES}. The following
- * is a layout with specific attribute value:
+ * is a layout with specific attributes value:
  * </p>
  * 
  * <pre>
@@ -78,9 +78,9 @@ import id.dkakunsi.lab.jlogging.attributeloader.EventAttributeLoader;
  * </p>
  * 
  * <p>
- * The other configurable attribute under {@code <CustomJsonLayout>} are:
+ * The other configurable attributes under {@code <CustomJsonLayout>} are:
  * <ul>
- * <li>timezone, default ot "UTC"</li>
+ * <li>timezone, default to "UTC"</li>
  * <li>dateFormat, default to ISO-8601</li>
  * </ul>
  * </p>
