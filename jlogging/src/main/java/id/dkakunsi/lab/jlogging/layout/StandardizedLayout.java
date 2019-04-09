@@ -29,7 +29,11 @@ import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 @Plugin(name = "StandardizedLayout", category = "Core", elementType = "layout", printObject = true)
 public class StandardizedLayout extends AbstractStringLayout {
 
-    private static final boolean recursiveStacktrace = true;
+    private static final boolean RECURSICE_STACKTRACE = true;
+
+    private static final String TIME_ZONE = "UTC";
+
+    private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm'Z'";
 
     private ObjectMapper mapper;
 
@@ -47,7 +51,7 @@ public class StandardizedLayout extends AbstractStringLayout {
     @Override
     public String toSerializable(LogEvent event) {
         Map<String, Object> format = new LinkedHashMap<>();
-        format.put("timestamp", getIsoDate(new Date()));
+        format.put("timestamp", getIsoDate(event.getTimeMillis()));
         format.put("correlationId", event.getContextData().getValue("correlationId"));
         format.put("tid", event.getContextData().getValue("tid"));
         format.put("principal", event.getContextData().getValue("principal"));
@@ -61,7 +65,7 @@ public class StandardizedLayout extends AbstractStringLayout {
         format.put("message", event.getMessage().getFormattedMessage());
         format.put("fault", event.getContextData().getValue("fault"));
         format.put("stacktrace",
-                event.getThrown() != null ? generateStackTrace(event.getThrown(), recursiveStacktrace) : null);
+                event.getThrown() != null ? generateStackTrace(event.getThrown(), RECURSICE_STACKTRACE) : null);
         format.put("payload", event.getContextData().getValue("payload"));
 
         try {
@@ -71,13 +75,13 @@ public class StandardizedLayout extends AbstractStringLayout {
         }
     }
 
-    private static String getIsoDate(Date date) {
-        if (date == null) {
-            date = new Date();
+    private static String getIsoDate(long millis) {
+        if (millis == 0) {
+            millis = new Date().getTime();
         }
 
-        TimeZone tz = TimeZone.getTimeZone("UTC");
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+        TimeZone tz = TimeZone.getTimeZone(TIME_ZONE);
+        DateFormat df = new SimpleDateFormat(DATE_FORMAT);
         df.setTimeZone(tz);
 
         return df.format(new Date());
