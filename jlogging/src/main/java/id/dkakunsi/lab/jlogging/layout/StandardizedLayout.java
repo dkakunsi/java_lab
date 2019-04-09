@@ -7,7 +7,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -15,7 +15,6 @@ import java.util.TimeZone;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
@@ -45,7 +44,7 @@ public class StandardizedLayout extends AbstractStringLayout {
 
     @Override
     public String toSerializable(LogEvent event) {
-        Map<String, Object> format = new HashMap<>();
+        Map<String, Object> format = new LinkedHashMap<>();
         format.put("timestamp", getIsoDate(new Date()));
         format.put("correlationId", event.getContextData().getValue("correlationId"));
         format.put("tid", event.getContextData().getValue("tid"));
@@ -102,7 +101,7 @@ public class StandardizedLayout extends AbstractStringLayout {
             thrown = getInnerException(thrown);
         }
 
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> map = new LinkedHashMap<>();
         map.put("exception", thrown.getClass().getName());
         map.put("message", thrown.getMessage());
         map.put("stack", generateStackTrace(thrown.getStackTrace()));
@@ -124,7 +123,7 @@ public class StandardizedLayout extends AbstractStringLayout {
 
         Map<String, Object> map;
         for (StackTraceElement stacktrace : stacktraces) {
-            map = new HashMap<>();
+            map = new LinkedHashMap<>();
             map.put("class", stacktrace.getFileName());
             map.put("method", stacktrace.getMethodName());
             map.put("line", stacktrace.getLineNumber());
