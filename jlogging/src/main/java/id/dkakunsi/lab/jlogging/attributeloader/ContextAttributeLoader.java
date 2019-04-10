@@ -3,6 +3,8 @@ package id.dkakunsi.lab.jlogging.attributeloader;
 import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.core.LogEvent;
 
+import id.dkakunsi.lab.jlogging.layout.CustomJsonLayout;
+
 /**
  * <p>
  * Load attributes from {@link ThreadContext} inside {@link LogEvent}. Each key
@@ -14,13 +16,17 @@ import org.apache.logging.log4j.core.LogEvent;
  */
 public class ContextAttributeLoader extends EventAttributeLoader {
 
-    @Override
-    public Object get(String key) {
-        return this.event.getContextData().getValue(key);
+    public ContextAttributeLoader(CustomJsonLayout layout) {
+        super(layout);
     }
 
     @Override
-    public boolean contain(String key) {
-        return true;
+    public Object load(String key) {
+        return this.layout.getEvent().getContextData().getValue(key);
+    }
+
+    @Override
+    public boolean contains(String key) {
+        return load(key) != null;
     }
 }

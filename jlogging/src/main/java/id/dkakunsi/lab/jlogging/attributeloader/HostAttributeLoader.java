@@ -16,35 +16,28 @@ import java.net.UnknownHostException;
  * 
  * @author dkakunsi
  */
-public class EnvironmentAttributeLoader implements AttributeLoader {
+public class HostAttributeLoader implements AttributeLoader {
 
     private static final String HOSTNAME = "hostname";
 
     private static final String HOST = "host";
 
     @Override
-    public Object get(String key) {
-        switch (key) {
-        case HOSTNAME:
-            return getHostname();
-        case HOST:
-            return getHostname();
-        default:
+    public Object load(String key) {
+        if (!contains(key)) {
             return null;
         }
-    }
 
-    @Override
-    public boolean contain(String key) {
-        return HOSTNAME.equals(key) || HOST.equals(key);
-    }
-
-    private String getHostname() {
         try {
             InetAddress inetAddress = InetAddress.getLocalHost();
             return inetAddress.getHostName();
         } catch (UnknownHostException e) {
             return e.getMessage();
         }
+    }
+
+    @Override
+    public boolean contains(String key) {
+        return HOSTNAME.equals(key) || HOST.equals(key);
     }
 }
