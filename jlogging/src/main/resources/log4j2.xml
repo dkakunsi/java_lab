@@ -6,10 +6,16 @@
                 isRecursiveStackTrace="false"
                 attributes="timestamp,correlationId,tid,principal,host,service,instance,version,thread,category,level,message,fault,stacktrace,payload" />
         </Console>
+        <File name="FILE" fileName="/tmp/log/jlogging.log">
+            <CustomJsonLayout
+                isRecursiveStackTrace="false"
+                attributes="timestamp,correlationId,tid,principal,host,service,instance,version,thread,category,level,message,fault,stacktrace,payload" />
+        </File>
     </Appenders>
     <Loggers>
         <Root level="INFO">
             <AppenderRef ref="CONSOLE" level="INFO" />
+            <AppenderRef ref="FILE" level="INFO" />
         </Root>
     </Loggers>
 </Configuration>
