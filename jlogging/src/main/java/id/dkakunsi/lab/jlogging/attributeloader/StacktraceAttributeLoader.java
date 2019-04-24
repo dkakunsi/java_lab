@@ -58,7 +58,7 @@ public class StacktraceAttributeLoader extends EventAttributeLoader {
      *                  will just print the most inner exception.
      * @return list of custom-formatted exception data.
      */
-    private List<Object> generateStackTrace(Throwable thrown, boolean recursive) {
+    public static List<Object> generateStackTrace(Throwable thrown, boolean recursive) {
         List<Object> stack = new ArrayList<>();
 
         if (recursive) {
@@ -85,7 +85,7 @@ public class StacktraceAttributeLoader extends EventAttributeLoader {
      * @param thrown exception
      * @return the most inner exception
      */
-    private Throwable getInnerException(Throwable thrown) {
+    private static Throwable getInnerException(Throwable thrown) {
         while (thrown.getCause() != null) {
             thrown = thrown.getCause();
         }
@@ -110,7 +110,7 @@ public class StacktraceAttributeLoader extends EventAttributeLoader {
      * @param stacktraces stacktrace element
      * @return list of custom-formatted stacktrace
      */
-    private List<Object> generateStackTrace(StackTraceElement[] stacktraces) {
+    private static List<Object> generateStackTrace(StackTraceElement[] stacktraces) {
         List<Object> stack = new ArrayList<>();
 
         Map<String, Object> map;
