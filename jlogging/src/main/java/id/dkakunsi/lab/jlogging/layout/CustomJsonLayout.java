@@ -2,9 +2,7 @@ package id.dkakunsi.lab.jlogging.layout;
 
 import java.net.InetAddress;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -74,10 +72,6 @@ public class CustomJsonLayout extends AbstractStringLayout {
 
     private static final String DEFAULT_ATTRIBUTES = "timestamp,category,level,message";
 
-    private static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm'Z'";
-
-    private static final String DEFAULT_TIMEZONE = "UTC";
-
     private String dateFormat;
 
     private String timezone;
@@ -114,8 +108,8 @@ public class CustomJsonLayout extends AbstractStringLayout {
     public static CustomJsonLayout createLayout(
             @PluginAttribute(value = "charset", defaultString = "UTF-8") Charset charset,
             @PluginAttribute(value = "isRecursiveStackTrace", defaultBoolean = true) boolean recursiveStacktrace,
-            @PluginAttribute(value = "timezone", defaultString = DEFAULT_TIMEZONE) String timezone,
-            @PluginAttribute(value = "dateFormat", defaultString = DEFAULT_DATE_FORMAT) String dateFormat,
+            @PluginAttribute(value = "timezone") String timezone,
+            @PluginAttribute(value = "dateFormat") String dateFormat,
             @PluginAttribute(value = "attributes", defaultString = DEFAULT_ATTRIBUTES) String attributes) {
         return new CustomJsonLayout(charset, recursiveStacktrace, timezone, dateFormat, attributes);
     }
@@ -142,7 +136,11 @@ public class CustomJsonLayout extends AbstractStringLayout {
 
         Map<String, Object> format = new LinkedHashMap<>();
         for (String attribute : getAttributes()) {
-            format.put(attribute, selectLoader(attribute).load(attribute));
+
+            Object attributeValue = selectLoader(attribute).load(attribute);
+            if (attributeValue != null) {
+                format.put(attribute, attributeValue);
+            }
         }
 
         try {
@@ -163,7 +161,6 @@ public class CustomJsonLayout extends AbstractStringLayout {
             }
         }
 
-        // this will always return null;
         return this.attributeLoaders[0];
     }
 }

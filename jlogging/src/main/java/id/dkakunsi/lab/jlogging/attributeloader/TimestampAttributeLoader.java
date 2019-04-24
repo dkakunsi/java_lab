@@ -16,6 +16,8 @@ public class TimestampAttributeLoader extends EventAttributeLoader {
 
     private static final String TIMESTAMP = "timestamp";
 
+    private static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+
     public TimestampAttributeLoader(CustomJsonLayout layout) {
         super(layout);
     }
@@ -25,12 +27,23 @@ public class TimestampAttributeLoader extends EventAttributeLoader {
         if (!contains(key)) {
             return null;
         }
+        return load(new Date(this.layout.getEvent().getTimeMillis()), this.layout.getTimezone(),
+                this.layout.getDateFormat());
+    }
 
-        TimeZone tz = TimeZone.getTimeZone(this.layout.getTimezone());
-        DateFormat df = new SimpleDateFormat(this.layout.getDateFormat());
+    public static Object load(Date date, String timezone, String dateFormat) {
+        if (dateFormat == null) {
+            dateFormat = DEFAULT_DATE_FORMAT;
+        }
+        DateFormat df = new SimpleDateFormat(dateFormat);
+
+        TimeZone tz = TimeZone.getDefault();
+        if (timezone != null) {
+            tz = TimeZone.getTimeZone(timezone);
+        }
         df.setTimeZone(tz);
 
-        return df.format(new Date(this.layout.getEvent().getTimeMillis()));
+        return df.format(date);
     }
 
     @Override
